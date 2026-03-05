@@ -5,206 +5,279 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Year Progress</title>
   <style>
+    :root {
+      --primary: #ff6b00;
+      --primary-glow: rgba(255,107,0,0.08);
+      --bg: #0f0f0f;
+      --bg-card: #1c1c1e;
+      --dot-empty: #2a2a2c;
+      --text: #ffffff;
+      --text-muted: #666;
+      --text-sub: #999;
+      --card-w: 380px;
+      --card-h: 220px;
+    }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       min-height: 100vh;
-      background: #0f0f0f;
+      background: var(--bg);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      padding: 32px 24px;
-      gap: 48px;
+      gap: 24px;
+      padding: 24px;
     }
 
-    .hero {
-      text-align: center;
-    }
-    .hero-label {
-      font-size: 11px;
-      letter-spacing: 3px;
-      color: #444;
-      text-transform: uppercase;
-      margin-bottom: 12px;
-    }
-    .hero-title {
-      font-size: clamp(32px, 8vw, 56px);
-      font-weight: 800;
-      color: #fff;
-      letter-spacing: -2px;
-      line-height: 1.1;
-    }
-    .hero-title span { color: #ff6b00; }
-    .hero-sub {
-      margin-top: 12px;
-      font-size: 14px;
-      color: #555;
-    }
-
-    /* 미리보기 진행률 */
-    .live-pct {
-      font-size: 13px;
-      color: #ff6b00;
-      margin-top: 8px;
-      letter-spacing: 1px;
-    }
-
-    /* 카드 선택 */
-    .options {
+    /* 탭 */
+    .tabs {
       display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-      justify-content: center;
+      gap: 8px;
     }
 
-    .option-card {
-      width: 260px;
-      background: #1c1c1e;
-      border-radius: 20px;
-      padding: 28px 24px;
-      text-decoration: none;
+    .tab {
+      padding: 6px 18px;
+      border-radius: 99px;
       border: 1px solid #2a2a2c;
-      transition: all 0.25s;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+      font-weight: 600;
+    }
+    .tab:hover:not(.active) {
+      border-color: #444;
+      color: var(--text-sub);
+    }
+
+    /* 위젯 래퍼 — 고정 크기 + 모바일 스케일 */
+    .widget-wrap {
+      width: var(--card-w);
+      height: var(--card-h);
+      position: relative;
+    }
+
+    /* 카드 */
+    .card {
+      width: var(--card-w);
+      height: var(--card-h);
+      background: var(--bg-card);
+      border-radius: 22px;
+      padding: 22px 24px 18px;
+      box-shadow:
+        0 24px 64px rgba(0,0,0,0.7),
+        inset 0 1px 0 rgba(255,255,255,0.04);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
       position: relative;
       overflow: hidden;
     }
-    .option-card::before {
+
+    /* 카드 배경 glow */
+    .card::before {
       content: '';
       position: absolute;
-      inset: 0;
-      border-radius: 20px;
-      opacity: 0;
-      transition: opacity 0.25s;
-    }
-    .option-card.fixed-card::before {
-      background: radial-gradient(ellipse at 30% 40%, rgba(255,107,0,0.08), transparent 70%);
-    }
-    .option-card.responsive-card::before {
-      background: radial-gradient(ellipse at 30% 40%, rgba(99,179,237,0.08), transparent 70%);
-    }
-    .option-card:hover {
-      transform: translateY(-4px);
-      border-color: #3a3a3c;
-      box-shadow: 0 20px 48px rgba(0,0,0,0.5);
-    }
-    .option-card:hover::before { opacity: 1; }
-
-    .option-icon {
-      font-size: 28px;
-      margin-bottom: 16px;
-      line-height: 1;
-    }
-    .option-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: #fff;
-      margin-bottom: 8px;
-    }
-    .fixed-card .option-title { color: #ff6b00; }
-    .responsive-card .option-title { color: #63b3ed; }
-
-    .option-desc {
-      font-size: 13px;
-      color: #555;
-      line-height: 1.6;
-      margin-bottom: 20px;
+      top: -60px;
+      left: -40px;
+      width: 200px;
+      height: 200px;
+      background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
+      pointer-events: none;
+      transition: background 0.4s ease;
     }
 
-    .option-tags {
+    .card-header {
       display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-    .tag {
-      font-size: 11px;
-      padding: 3px 10px;
-      border-radius: 99px;
-      background: #2a2a2c;
-      color: #666;
+      justify-content: space-between;
+      align-items: baseline;
     }
 
-    .option-arrow {
-      position: absolute;
-      bottom: 24px;
-      right: 24px;
-      color: #3a3a3c;
-      transition: color 0.2s, transform 0.2s;
-    }
-    .option-card:hover .option-arrow {
-      color: #666;
-      transform: translateX(3px);
+    .card-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.5px;
     }
 
-    .footer-note {
+    .card-percent {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    /* 점 매트릭스 */
+    .dots-grid {
+      display: grid;
+      grid-template-columns: repeat(25, 1fr);
+      gap: 3.5px;
+      flex: 1;
+      align-content: center;
+    }
+
+    .dot {
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: var(--dot-empty);
+    }
+    .dot.filled {
+      background: var(--primary);
+      transition: background 0.3s ease;
+    }
+
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .days-left {
       font-size: 12px;
-      color: #333;
+      color: var(--text-muted);
+    }
+
+    .unit-label {
+      font-size: 11px;
+      color: #3a3a3c;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* 시계 */
+    .clock {
+      font-size: 12px;
+      color: #3a3a3c;
+      letter-spacing: 1px;
+    }
+
+    /* 저장 버튼 */
+    .btn-save {
+      padding: 10px 28px;
+      border-radius: 99px;
+      background: transparent;
+      border: 1px solid #2a2a2c;
+      color: var(--text-muted);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-save:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    /* 모바일: transform scale */
+    @media (max-width: 420px) {
+      .widget-wrap {
+        transform-origin: center center;
+        transform: scale(calc(min(100vw - 48px, 380) / 380));
+      }
     }
   </style>
 </head>
 <body>
 
-  <div class="hero">
-    <div class="hero-label">Time Progress</div>
-    <div class="hero-title">How much of<br><span>this year</span> is left?</div>
-    <div class="hero-sub">두 가지 레이아웃을 선택해 확인하세요.</div>
-    <div class="live-pct" id="live-pct">2026 로딩 중…</div>
+  <div class="tabs">
+    <button class="tab active" data-unit="year">Year</button>
+    <button class="tab" data-unit="month">Month</button>
+    <button class="tab" data-unit="week">Week</button>
+    <button class="tab" data-unit="day">Day</button>
   </div>
 
-  <div class="options">
-    <!-- 고정형 -->
-    <a class="option-card fixed-card" href="fixed.html">
-      <div class="option-icon">▣</div>
-      <div class="option-title">Fixed Widget</div>
-      <div class="option-desc">
-        380×220px 고정 크기.<br>
-        iOS 위젯 감성 그대로.<br>
-        카드 이미지 저장 지원.
+  <div class="widget-wrap">
+    <div class="card" id="card">
+      <div class="card-header">
+        <div class="card-title" id="card-title">—</div>
+        <div class="card-percent" id="card-percent">—</div>
       </div>
-      <div class="option-tags">
-        <span class="tag">고정 크기</span>
-        <span class="tag">위젯 감성</span>
-        <span class="tag">이미지 저장</span>
+      <div class="dots-grid" id="dots-grid"></div>
+      <div class="card-footer">
+        <div class="days-left" id="days-left">—</div>
+        <div class="unit-label" id="unit-label">—</div>
       </div>
-      <svg class="option-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polyline points="9 18 15 12 9 6"/>
-      </svg>
-    </a>
-
-    <!-- 반응형 -->
-    <a class="option-card responsive-card" href="responsive.html">
-      <div class="option-icon">⊞</div>
-      <div class="option-title">Responsive</div>
-      <div class="option-desc">
-        모든 화면 크기에 최적화.<br>
-        4개 단위 카드 동시 표시.<br>
-        데스크탑 2×2 그리드.
-      </div>
-      <div class="option-tags">
-        <span class="tag">반응형</span>
-        <span class="tag">4개 단위</span>
-        <span class="tag">데스크탑 최적화</span>
-      </div>
-      <svg class="option-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polyline points="9 18 15 12 9 6"/>
-      </svg>
-    </a>
+    </div>
   </div>
 
-  <div class="footer-note">Year / Month / Week / Day 진행률을 실시간으로 표시합니다.</div>
+  <div class="clock" id="clock">—</div>
+
+  <button class="btn-save" id="btn-save">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="7 10 12 15 17 10"/>
+      <line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>
+    이미지 저장
+  </button>
 
   <script src="shared.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script>
-    function updateLivePct() {
-      const data = getProgress('year');
-      const pct = Math.min(100, Math.max(0, data.pct));
-      document.getElementById('live-pct').textContent =
-        `${data.title} — 현재 ${pct.toFixed(2)}% 경과 · ${data.left}`;
-    }
-    updateLivePct();
-    setInterval(updateLivePct, 1000);
-  </script>
+    let currentUnit = 'year';
 
+    const COLORS = {
+      year:  { primary: '#ff6b00', glow: 'rgba(255,107,0,0.08)'  },
+      month: { primary: '#63b3ed', glow: 'rgba(99,179,237,0.08)' },
+      week:  { primary: '#68d391', glow: 'rgba(104,211,145,0.08)'},
+      day:   { primary: '#b794f4', glow: 'rgba(183,148,244,0.08)'},
+    };
+
+    function applyColor(unit) {
+      const c = COLORS[unit];
+      document.documentElement.style.setProperty('--primary', c.primary);
+      document.documentElement.style.setProperty('--primary-glow', c.glow);
+    }
+
+    function update() {
+      const data = getProgress(currentUnit);
+      const pct  = Math.min(100, Math.max(0, data.pct));
+      document.getElementById('card-title').textContent   = data.title;
+      document.getElementById('card-percent').textContent = pct.toFixed(1) + '%';
+      document.getElementById('days-left').textContent    = data.left;
+      document.getElementById('unit-label').textContent   = data.label;
+      renderDots(document.getElementById('dots-grid'), pct, 100);
+    }
+
+    document.querySelectorAll('.tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentUnit = btn.dataset.unit;
+        applyColor(currentUnit);
+        update();
+      });
+    });
+
+    document.getElementById('btn-save').addEventListener('click', () => {
+      html2canvas(document.getElementById('card'), {
+        backgroundColor: '#1c1c1e',
+        scale: 3,
+        useCORS: true
+      }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `progress-${currentUnit}-${Date.now()}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+    });
+
+    update();
+    document.getElementById('clock').textContent = getClockString();
+    setInterval(() => {
+      update();
+      document.getElementById('clock').textContent = getClockString();
+    }, 1000);
+  </script>
 </body>
 </html>
