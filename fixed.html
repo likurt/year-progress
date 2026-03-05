@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Year Progress — Fixed</title>
+  <style>
+    :root {
+      --primary: #ff6b00;
+      --primary-glow: rgba(255,107,0,0.08);
+      --bg: #0f0f0f;
+      --bg-card: #1c1c1e;
+      --dot-empty: #2a2a2c;
+      --text: #ffffff;
+      --text-muted: #666;
+      --text-sub: #999;
+      --card-w: 380px;
+      --card-h: 220px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      gap: 24px;
+      padding: 24px;
+    }
+
+    /* 뒤로가기 */
+    .back-link {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      color: var(--text-muted);
+      font-size: 13px;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--text-sub); }
+
+    /* 레이블 */
+    .mode-label {
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    /* 탭 */
+    .tabs {
+      display: flex;
+      gap: 8px;
+    }
+
+    .tab {
+      padding: 6px 18px;
+      border-radius: 99px;
+      border: 1px solid #2a2a2c;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+      font-weight: 600;
+    }
+    .tab:hover:not(.active) {
+      border-color: #444;
+      color: var(--text-sub);
+    }
+
+    /* 위젯 래퍼 — 고정 크기 + 모바일 스케일 */
+    .widget-wrap {
+      width: var(--card-w);
+      height: var(--card-h);
+      position: relative;
+    }
+
+    /* 카드 */
+    .card {
+      width: var(--card-w);
+      height: var(--card-h);
+      background: var(--bg-card);
+      border-radius: 22px;
+      padding: 22px 24px 18px;
+      box-shadow:
+        0 24px 64px rgba(0,0,0,0.7),
+        inset 0 1px 0 rgba(255,255,255,0.04);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* 카드 배경 glow */
+    .card::before {
+      content: '';
+      position: absolute;
+      top: -60px;
+      left: -40px;
+      width: 200px;
+      height: 200px;
+      background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
+      pointer-events: none;
+      transition: background 0.4s ease;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .card-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.5px;
+    }
+
+    .card-percent {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    /* 점 매트릭스 */
+    .dots-grid {
+      display: grid;
+      grid-template-columns: repeat(25, 1fr);
+      gap: 3.5px;
+      flex: 1;
+      align-content: center;
+    }
+
+    .dot {
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: var(--dot-empty);
+    }
+    .dot.filled {
+      background: var(--primary);
+      transition: background 0.3s ease;
+    }
+
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .days-left {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .unit-label {
+      font-size: 11px;
+      color: #3a3a3c;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* 시계 */
+    .clock {
+      font-size: 12px;
+      color: #3a3a3c;
+      letter-spacing: 1px;
+    }
+
+    /* 저장 버튼 */
+    .btn-save {
+      padding: 10px 28px;
+      border-radius: 99px;
+      background: transparent;
+      border: 1px solid #2a2a2c;
+      color: var(--text-muted);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-save:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    /* 모바일: transform scale */
+    @media (max-width: 420px) {
+      .widget-wrap {
+        transform-origin: center center;
+        transform: scale(calc(min(100vw - 48px, 380) / 380));
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <a class="back-link" href="index.html">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="15 18 9 12 15 6"/>
+    </svg>
+    돌아가기
+  </a>
+
+  <div class="mode-label">Fixed Widget</div>
+
+  <div class="tabs">
+    <button class="tab active" data-unit="year">Year</button>
+    <button class="tab" data-unit="month">Month</button>
+    <button class="tab" data-unit="week">Week</button>
+    <button class="tab" data-unit="day">Day</button>
+  </div>
+
+  <div class="widget-wrap">
+    <div class="card" id="card">
+      <div class="card-header">
+        <div class="card-title" id="card-title">—</div>
+        <div class="card-percent" id="card-percent">—</div>
+      </div>
+      <div class="dots-grid" id="dots-grid"></div>
+      <div class="card-footer">
+        <div class="days-left" id="days-left">—</div>
+        <div class="unit-label" id="unit-label">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="clock" id="clock">—</div>
+
+  <button class="btn-save" id="btn-save">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="7 10 12 15 17 10"/>
+      <line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>
+    이미지 저장
+  </button>
+
+  <script src="shared.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script>
+    let currentUnit = 'year';
+
+    // 단위별 포인트 컬러
+    const COLORS = {
+      year:  { primary: '#ff6b00', glow: 'rgba(255,107,0,0.08)'  },  // 주황
+      month: { primary: '#63b3ed', glow: 'rgba(99,179,237,0.08)' },  // 파랑
+      week:  { primary: '#68d391', glow: 'rgba(104,211,145,0.08)'},  // 초록
+      day:   { primary: '#b794f4', glow: 'rgba(183,148,244,0.08)'},  // 보라
+    };
+
+    function applyColor(unit) {
+      const c = COLORS[unit];
+      const root = document.documentElement;
+      root.style.setProperty('--primary', c.primary);
+      root.style.setProperty('--primary-glow', c.glow);
+    }
+
+    function update() {
+      const data = getProgress(currentUnit);
+      const pct  = Math.min(100, Math.max(0, data.pct));
+      document.getElementById('card-title').textContent   = data.title;
+      document.getElementById('card-percent').textContent = pct.toFixed(1) + '%';
+      document.getElementById('days-left').textContent    = data.left;
+      document.getElementById('unit-label').textContent   = data.label;
+      renderDots(document.getElementById('dots-grid'), pct, 100);
+    }
+
+    document.querySelectorAll('.tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentUnit = btn.dataset.unit;
+        applyColor(currentUnit);
+        update();
+      });
+    });
+
+    document.getElementById('btn-save').addEventListener('click', () => {
+      html2canvas(document.getElementById('card'), {
+        backgroundColor: '#1c1c1e',
+        scale: 3,
+        useCORS: true
+      }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `progress-fixed-${currentUnit}-${Date.now()}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+    });
+
+    update();
+    document.getElementById('clock').textContent = getClockString();
+    setInterval(() => {
+      update();
+      document.getElementById('clock').textContent = getClockString();
+    }, 1000);
+  </script>
+</body>
+</html>

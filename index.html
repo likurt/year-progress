@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Year Progress</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      background: #0f0f0f;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      padding: 32px 24px;
+      gap: 48px;
+    }
+
+    .hero {
+      text-align: center;
+    }
+    .hero-label {
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: #444;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .hero-title {
+      font-size: clamp(32px, 8vw, 56px);
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -2px;
+      line-height: 1.1;
+    }
+    .hero-title span { color: #ff6b00; }
+    .hero-sub {
+      margin-top: 12px;
+      font-size: 14px;
+      color: #555;
+    }
+
+    /* 미리보기 진행률 */
+    .live-pct {
+      font-size: 13px;
+      color: #ff6b00;
+      margin-top: 8px;
+      letter-spacing: 1px;
+    }
+
+    /* 카드 선택 */
+    .options {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .option-card {
+      width: 260px;
+      background: #1c1c1e;
+      border-radius: 20px;
+      padding: 28px 24px;
+      text-decoration: none;
+      border: 1px solid #2a2a2c;
+      transition: all 0.25s;
+      position: relative;
+      overflow: hidden;
+    }
+    .option-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 20px;
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+    .option-card.fixed-card::before {
+      background: radial-gradient(ellipse at 30% 40%, rgba(255,107,0,0.08), transparent 70%);
+    }
+    .option-card.responsive-card::before {
+      background: radial-gradient(ellipse at 30% 40%, rgba(99,179,237,0.08), transparent 70%);
+    }
+    .option-card:hover {
+      transform: translateY(-4px);
+      border-color: #3a3a3c;
+      box-shadow: 0 20px 48px rgba(0,0,0,0.5);
+    }
+    .option-card:hover::before { opacity: 1; }
+
+    .option-icon {
+      font-size: 28px;
+      margin-bottom: 16px;
+      line-height: 1;
+    }
+    .option-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .fixed-card .option-title { color: #ff6b00; }
+    .responsive-card .option-title { color: #63b3ed; }
+
+    .option-desc {
+      font-size: 13px;
+      color: #555;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .option-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .tag {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 99px;
+      background: #2a2a2c;
+      color: #666;
+    }
+
+    .option-arrow {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      color: #3a3a3c;
+      transition: color 0.2s, transform 0.2s;
+    }
+    .option-card:hover .option-arrow {
+      color: #666;
+      transform: translateX(3px);
+    }
+
+    .footer-note {
+      font-size: 12px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="hero">
+    <div class="hero-label">Time Progress</div>
+    <div class="hero-title">How much of<br><span>this year</span> is left?</div>
+    <div class="hero-sub">두 가지 레이아웃을 선택해 확인하세요.</div>
+    <div class="live-pct" id="live-pct">2026 로딩 중…</div>
+  </div>
+
+  <div class="options">
+    <!-- 고정형 -->
+    <a class="option-card fixed-card" href="fixed.html">
+      <div class="option-icon">▣</div>
+      <div class="option-title">Fixed Widget</div>
+      <div class="option-desc">
+        380×220px 고정 크기.<br>
+        iOS 위젯 감성 그대로.<br>
+        카드 이미지 저장 지원.
+      </div>
+      <div class="option-tags">
+        <span class="tag">고정 크기</span>
+        <span class="tag">위젯 감성</span>
+        <span class="tag">이미지 저장</span>
+      </div>
+      <svg class="option-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    </a>
+
+    <!-- 반응형 -->
+    <a class="option-card responsive-card" href="responsive.html">
+      <div class="option-icon">⊞</div>
+      <div class="option-title">Responsive</div>
+      <div class="option-desc">
+        모든 화면 크기에 최적화.<br>
+        4개 단위 카드 동시 표시.<br>
+        데스크탑 2×2 그리드.
+      </div>
+      <div class="option-tags">
+        <span class="tag">반응형</span>
+        <span class="tag">4개 단위</span>
+        <span class="tag">데스크탑 최적화</span>
+      </div>
+      <svg class="option-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    </a>
+  </div>
+
+  <div class="footer-note">Year / Month / Week / Day 진행률을 실시간으로 표시합니다.</div>
+
+  <script src="shared.js"></script>
+  <script>
+    function updateLivePct() {
+      const data = getProgress('year');
+      const pct = Math.min(100, Math.max(0, data.pct));
+      document.getElementById('live-pct').textContent =
+        `${data.title} — 현재 ${pct.toFixed(2)}% 경과 · ${data.left}`;
+    }
+    updateLivePct();
+    setInterval(updateLivePct, 1000);
+  </script>
+
+</body>
+</html>
